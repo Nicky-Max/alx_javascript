@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Storage</title>
+</head>
+
+<body>
+    <script defer>
+        const availableItems = ["Shampoo", "Soap", "Sponge", "Water"];
+
+        if (typeof (Storage) === "undefined") {
+            alert("Sorry, your browser does not support Web storage. Try again with a better one");
+        } else {
+            createStore();
+            displayCart();
+        }
+
+        function getCartFromStorage() {
+            const sessionStorageCart = sessionStorage.getItem("cart");
+
+            let cart = {};
+            if (sessionStorageCart) {
+                cart = JSON.parse(sessionStorageCart);
+            }
+
+            return cart;
+        }
+
+        function addItemToCart(item) {
+            const cart = getCartFromStorage();
+
+            if (cart[item]) {
+                cart[item] += 1;
+            } else {
+                cart[item] = 1;
+            }
+
+            sessionStorage.setItem("cart", JSON.stringify(cart));
+            displayCart();
+        }
+
+        function removeItemfromCart(item) {
+            const cart = getCartFromStorage();
+            delete cart[item];
+            sessionStorage.setItem("cart", JSON.stringify(cart));
+            displayCart();
+        }
+
+        function clearCart() {
+            sessionStorage.clear();
+            displayCart();
+        }
+
+        function createStore() {
+            const h2Node = document.createElement("h2");
+            h2Node.innerHTML = "Available products:";
+            document.body.append(h2Node);
+
+            const ulNode = document.createElement("ul");
+
+            for (let availableItem of availableItems) {
+                const liNode = document.createElement("li");
+                liNode.innerHTML = availableItem;
+                liNode.onclick = () => addItemToCart(availableItem);
+
+                ulNode.append(liNode);
+            }
+
+            document.body.append(ulNode);
+        }
+
+        function displayCart() {
+            const existingCartNode = document.querySelector("#your-cart");
+            if (!existingCartNode) {
+                const h2Node = document.createElement("h2");
+                h2Node.setAttribute("id", "your-cart");
+                h2Node.innerHTML = "Your cart:";
+                document.body.append(h2Node);
+            }
+
+            const existingDivNode = document.querySelector("#cart");
+            if (existingDivNode) {
+                while (existingDivNode.hasChildNodes()) {
+                    existingDivNode.removeChild(existingDivNode.firstChild);
+                }
+            } else {
+                const divNode = document.createElement("div");
+                divNode.setAttribute("id", "cart");
+                document.body.append(divNode);
+            }
+
+            updateCart();
+        }
+
+        function updateCart() {
+            const cart = getCartFromStorage();
+
+            const existingDivNode = document.querySelector("#cart");
+            if (!existingDivNode) return;
+
+            const ulNode = document.createElement("ul");
+
+            if (Object.keys(cart).length === 0) { // cart is empty
+                const liNode = document.createElement("li");
+                liNode.innerHTML = "Your cart is empty";
+
+                ulNode.append(liNode);
+            } else { // cart has items
+                const itemNames = Object.keys(cart);
+
+                const liClearCartNode = document.createElement("li");
+                liClearCartNode.innerHTML = "Clear my cart";
+                liClearCartNode.onclick = () => clearCart();
+                ulNode.append(liClearCartNode);
+
+                for (let itemName of itemNames) {
+                    const removeItemNode = document.createElement("a");
+                    removeItemNode.innerHTML = " (remove)"
+                    removeItemNode.onclick = () => removeItemfromCart(itemName);
+
+                    const liNode = document.createElement("li");
+                    liNode.innerHTML = itemName + " x " + cart[itemName];
+                    liNode.append(removeItemNode);
+
+                    ulNode.append(liNode);
+                }
+            }
+
+            existingDivNode.append(ulNode);
+        }
+    </script>
+</body>
+
+</html>
